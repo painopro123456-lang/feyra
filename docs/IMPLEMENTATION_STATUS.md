@@ -17,6 +17,7 @@ Status is deliberately conservative: "implemented in code" does not mean indepen
 - [x] Find-in-page bar using window.find
 - [x] Split-view prototype, picture-in-picture action, reader-style view action
 - [x] Windows GitHub Actions build/publish workflow
+- [x] Background WebView2 tab suspension/resume policy (reduces background activity; does not guarantee process memory is released)
 
 ## Partial / prototype — needs refinement and testing
 - [ ] Tab pinning is currently a visual state only; pinned-tab ordering/close protection is not finished
@@ -32,11 +33,12 @@ Status is deliberately conservative: "implemented in code" does not mean indepen
 - [ ] Picture-in-picture depends on the active site's video support
 - [ ] Search suggestions, tab search, vertical tab polish, split-screen persistence and drag reorder need implementation
 - [ ] Theme, compact mode and accessibility preferences need actual visual application
-- [ ] Tab sleeping/resource suspension and performance diagnostics need implementation
+- [ ] Stronger tab sleeping that unloads inactive WebView2 instances is not implemented; current suspension retains page/process memory
+- [ ] Memory/CPU diagnostics and measured RAM benchmarks need implementation
 - [ ] Installer, update/install prompt, rollback and code signing are not implemented
 
 ## Validation
-- [ ] Successful Windows CI build confirmed
+- [ ] Successful Windows CI build confirmed (latest changes have not yet been compiled/verified)
 - [ ] Clean Windows 10 install and launch test
 - [ ] Clean Windows 11 install and launch test
 - [ ] Navigation, downloads, private profile isolation, session restore and crash recovery tested end-to-end
