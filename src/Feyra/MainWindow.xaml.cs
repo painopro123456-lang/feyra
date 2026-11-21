@@ -94,6 +94,7 @@ public partial class MainWindow : Window
         var tab = new TabItem { Header = MakeTabHeader("New tab"), Content = web, Tag = new BrowserTab(web, address ?? "", isPrivate, false, profile) };
         Tabs.Items.Add(tab);
         _tabs.Add((BrowserTab)tab.Tag);
+        AttachTabContextMenu(tab);
         if (select) Tabs.SelectedItem = tab;
 
         try
@@ -166,6 +167,40 @@ public partial class MainWindow : Window
             StatusText.Text = "WebView2 initialization failed. Install the Microsoft Edge WebView2 Runtime.";
             MessageBox.Show(this, ex.Message, "FEYRA initialization", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
+
+    private void AttachTabContextMenu(TabItem tab)
+    {
+        var menu = new ContextMenu();
+        var duplicate = new MenuItem { Header = "Duplicate tab" };
+        duplicate.Click += (_, _) => _ = CreateTabAsync((tab.Tag as BrowserTab)?.LastUrl);
+        var pin = new MenuItem { Header = "Pin / unpin tab" };
+        pin.Click += (_, _) =>
+        {
+            if (tab.Tag is not BrowserTab state) return;
+            state.IsPinned = !state.IsPinned;
+            UpdateTabTitle(tab, state.IsPinned ? "◆ " + (state.LastUrl is { Length: > 0 } u ? GetHost(new Uri(u)) : "Pinned") : (state.LastUrl is { Length: > 0 } v ? GetHost(new Uri(v)) : "New tab"));
+        };
+        var mute = new MenuItem { Header = "Mute / unmute tab" };
+        mute.Click += async (_, _) =>
+        {
+            if (tab.Content is WebView2 web && web.CoreWebView2 != null)
+            {
+                var muted = await web.CoreWebView2.ExecuteScriptAsync("(()=>{const v=[...document.querySelectorAll('video,audio')];v.forEach(x=>x.muted=!x.muted);return v.some(x=>x.muted)})()");
+                StatusText.Text = muted.Contains("true") ? "Media muted." : "Media unmuted.";
+            }
+        };
+        var close = new MenuItem { Header = "Close tab" };
+        close.Click += (_, _) => CloseTab(tab);
+        var closeOthers = new MenuItem { Header = "Close other tabs" };
+        closeOthers.Click += (_, _) =>
+        {
+            foreach (var other in Tabs.Items.OfType<TabItem>().Where(x => x != tab).ToList()) CloseTab(other);
+            Tabs.SelectedItem = tab;
+        };
+        menu.Items.Add(duplicate); menu.Items.Add(pin); menu.Items.Add(mute);
+        menu.Items.Add(new Separator()); menu.Items.Add(close); menu.Items.Add(closeOthers);
+        tab.ContextMenu = menu;
     }
 
     private UIElement MakeTabHeader(string title)
