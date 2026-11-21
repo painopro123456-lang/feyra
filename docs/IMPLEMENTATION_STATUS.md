@@ -1,35 +1,45 @@
 # FEYRA implementation status
 
-This file tracks verified implementation. Roadmap ideas are not marked complete until implemented and tested.
+Status is deliberately conservative: "implemented in code" does not mean independently QA-verified.
 
-## Foundation in repository
-- [x] Windows WPF application project scaffold (.NET 8)
-- [x] WebView2 package reference
-- [x] Custom dark browser shell and address bar
-- [x] Basic tab creation and closing
-- [x] Basic navigation and search fallback
-- [x] New-window requests open in a new tab
-- [x] Local bookmark, history, and download-path persistence
-- [x] Basic Ctrl+T, Ctrl+W, Ctrl+L, Ctrl+R, Ctrl+D, Ctrl+H, Ctrl+J shortcuts
-- [x] Initial Windows CI build workflow
+## Implemented in current source
+- [x] Windows desktop WPF app scaffold targeting .NET 8 / Windows
+- [x] WebView2 runtime initialization and real web navigation
+- [x] Search-or-URL address bar, back, forward, reload
+- [x] Multiple tabs, close buttons, duplicate, pin indicator, tab context menu
+- [x] Open links/new windows in tabs
+- [x] Keyboard shortcuts for tabs, address bar, history, downloads, bookmarks, find, zoom and navigation
+- [x] Local settings, bookmarks, history and download metadata persistence
+- [x] Searchable history, bookmark and download list windows
+- [x] Configurable search provider, default zoom, startup session restore, vertical tabs toggle
+- [x] Per-tab private WebView2 profile folders, private tabs excluded from saved history/session/bookmarks
+- [x] Basic download progress/state metadata event handling
+- [x] Find-in-page bar using window.find
+- [x] Split-view prototype, picture-in-picture action, reader-style view action
+- [x] Windows GitHub Actions build/publish workflow
 
-## Not yet implemented / not yet verified
-- [ ] Run CI and fix all build/runtime issues
-- [ ] Full download manager (progress, pause/resume, retry, open/show in folder)
-- [ ] Full history and bookmark management (delete, folders, import/export)
-- [ ] Private windows with isolated WebView2 profiles
-- [ ] Settings UI and persisted preferences
-- [ ] Session restore and recently closed tabs
-- [ ] Tab pinning, groups, search, vertical tabs, split view
-- [ ] Per-site permissions and zoom
-- [ ] Find-in-page UI, reader mode, picture-in-picture
-- [ ] Theme, density, accessibility, and shortcut customization
-- [ ] Tab sleeping, diagnostics, crash recovery
-- [ ] Installer, update flow, rollback, and signed releases
+## Partial / prototype — needs refinement and testing
+- [ ] Tab pinning is currently a visual state only; pinned-tab ordering/close protection is not finished
+- [ ] Tab groups are not implemented yet
+- [ ] Tab mute action toggles media elements on the page, not WebView2's native audio mute state
+- [ ] Split view is a prototype and needs lifecycle/layout testing
+- [ ] Private profile cleanup is best-effort after tab close; crash cleanup and a dedicated private-window UX are not finished
+- [ ] Downloads are tracked, but pause/resume/cancel/retry/open/show-in-folder and robust file destination UI are not finished
+- [ ] Bookmarks lack folder editing, import/export and robust deletion UX
+- [ ] History lacks date filters and granular clear-data controls
+- [ ] Per-site permission management is not implemented; current setting is only a prompt policy placeholder
+- [ ] Reader mode is a prototype DOM transformation, not a robust article extractor
+- [ ] Picture-in-picture depends on the active site's video support
+- [ ] Search suggestions, tab search, vertical tab polish, split-screen persistence and drag reorder need implementation
+- [ ] Theme, compact mode and accessibility preferences need actual visual application
+- [ ] Tab sleeping/resource suspension and performance diagnostics need implementation
+- [ ] Installer, update/install prompt, rollback and code signing are not implemented
 
-## Known preview limitations
-- Private mode currently suppresses local history/bookmark persistence but does not yet create an isolated WebView2 profile. Do not treat it as a security boundary.
-- The Settings entry is currently an explanatory placeholder.
-- Download entries currently record paths only; this is not a complete download manager.
-- History/bookmark views are basic searchable lists, not full management pages.
-- The CI artifact is a published app folder, not yet a signed installer.
+## Validation
+- [ ] Successful Windows CI build confirmed
+- [ ] Clean Windows 10 install and launch test
+- [ ] Clean Windows 11 install and launch test
+- [ ] Navigation, downloads, private profile isolation, session restore and crash recovery tested end-to-end
+
+## Known release limitations
+This is an actively developing preview, not a release-ready browser. Do not distribute it as a finished product until the validation checklist passes. The WebView2 runtime is required and must be included or installed by the eventual installer.
