@@ -262,7 +262,7 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
         web.Source = new Uri(searchUrl);
     }
 
-    private WebView2? CurrentWeb() => (Tabs.SelectedItem as TabItem)?.Content as WebView2;
+    private WebView2? CurrentWeb() => (Tabs.SelectedItem as TabItem)?.Tag is BrowserTab state ? state.View : null;
     private void UpdateAddress()
     {
         var web = CurrentWeb();
@@ -332,8 +332,12 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
             _closedTabs.Insert(0, state.LastUrl);
         if (Tabs.Items.Count == 1) { _ = CreateTabAsync(); }
         Tabs.Items.Remove(tab);
-        if (tab.Content is WebView2 web) web.Dispose();
-        if (tab.Tag is BrowserTab closed && closed.IsPrivate) _ = DeletePrivateProfileAsync(closed.ProfilePath);
+        if (tab.Tag is BrowserTab closed)
+        {
+            if (tab.Content is Grid splitGrid) splitGrid.Children.Clear();
+            closed.View.Dispose();
+            if (closed.IsPrivate) _ = DeletePrivateProfileAsync(closed.ProfilePath);
+        }
         SaveSession();
     }
 
@@ -482,27 +486,48 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
     private void SplitView_Click(object sender, RoutedEventArgs e) => ToggleSplitView();
     private async void ToggleSplitView()
     {
+        if (Tabs.SelectedItem is not TabItem selected || selected.Tag is not BrowserTab tabState) return;
         if (_splitEnabled)
         {
-            if (_splitWeb != null) { BrowserSurface.Children.Remove(_splitWeb); _splitWeb.Dispose(); _splitWeb = null; }
-            _splitEnabled = false; StatusText.Text = "Split view closed."; return;
+            if (selected.Content is Grid splitGrid)
+            {
+                splitGrid.Children.Clear();
+                selected.Content = tabState.View;
+            }
+            _splitWeb?.Dispose();
+            _splitWeb = null;
+            _splitEnabled = false;
+            StatusText.Text = "Split view closed.";
+            return;
         }
-        var current = CurrentWeb();
-        if (current == null) return;
+        var current = tabState.View;
         _splitWeb = new WebView2();
         try
         {
-            var env = await CoreWebView2Environment.CreateAsync(null, Path.Combine(_dataDirectory, "DefaultProfile"));
+            var profile = tabState.IsPrivate ? tabState.ProfilePath : Path.Combine(_dataDirectory, "DefaultProfile");
+            var env = await CoreWebView2Environment.CreateAsync(null, profile);
             await _splitWeb.EnsureCoreWebView2Async(env);
-            var grid = new Grid(); grid.ColumnDefinitions.Add(new ColumnDefinition()); grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1) }); grid.ColumnDefinitions.Add(new ColumnDefinition());
-            BrowserSurface.Children.Clear();
-            BrowserSurface.Children.Add(grid);
-            Grid.SetColumn(current, 0); grid.Children.Add(current);
-            Grid.SetColumn(_splitWeb, 2); grid.Children.Add(_splitWeb);
+            var grid = new Grid();
+            grid.ColumnDefinitions.Add(new ColumnDefinition());
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition());
+            selected.Content = null;
+            Grid.SetColumn(current, 0);
+            grid.Children.Add(current);
+            Grid.SetColumn(_splitWeb, 2);
+            grid.Children.Add(_splitWeb);
+            selected.Content = grid;
             _splitWeb.Source = current.Source ?? new Uri("https://www.google.com");
-            _splitEnabled = true; StatusText.Text = "Split view enabled. Both panes share the browser profile.";
+            _splitEnabled = true;
+            StatusText.Text = "Split view enabled.";
         }
-        catch (Exception ex) { StatusText.Text = "Could not start split view: " + ex.Message; }
+        catch (Exception ex)
+        {
+            _splitWeb?.Dispose();
+            _splitWeb = null;
+            selected.Content = current;
+            StatusText.Text = "Could not start split view: " + ex.Message;
+        }
     }
 
     private void MoreMenu_Click(object sender, RoutedEventArgs e)
@@ -566,7 +591,14 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
     protected override void OnClosed(EventArgs e)
     {
         foreach (var tab in Tabs.Items.OfType<TabItem>())
-            if (tab.Content is WebView2 web) web.Dispose();
+        {
+            if (tab.Content is Grid splitGrid) splitGrid.Children.Clear();
+            if (tab.Tag is BrowserTab state)
+            {
+                state.View.Dispose();
+                if (state.IsPrivate) _ = DeletePrivateProfileAsync(state.ProfilePath);
+            }
+        }
         _splitWeb?.Dispose();
         base.OnClosed(e);
     }
