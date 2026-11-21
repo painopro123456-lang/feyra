@@ -35,7 +35,9 @@ Status is deliberately conservative: "implemented in code" does not mean indepen
 - [ ] Theme, compact mode and accessibility preferences need actual visual application
 - [ ] Stronger tab sleeping that unloads inactive WebView2 instances is not implemented; current suspension retains page/process memory
 - [ ] Memory/CPU diagnostics and measured RAM benchmarks need implementation
-- [ ] Installer, update/install prompt, rollback and code signing are not implemented
+- [x] Velopack updater checks GitHub Releases on startup, downloads available updates silently, and applies/restarts automatically for installed builds
+- [x] Tag-triggered Windows release workflow packages an installer and Velopack update assets
+- [ ] End-to-end update test between two installed versions; code signing and rollback validation remain outstanding
 
 ## Newly requested features — planned, not implemented
 
