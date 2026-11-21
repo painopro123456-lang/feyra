@@ -121,10 +121,25 @@ public partial class MainWindow : Window
             core.Settings.IsGeneralAutofillEnabled = false;
             web.ZoomFactor = _settings.DefaultZoom;
 
-            core.NavigationStarting += (_, e) => Dispatcher.Invoke(() =>
+            core.NavigationStarting += (_, e) =>
             {
-                if (Tabs.SelectedItem == tab) { AddressBox.Text = e.Uri; StatusText.Text = "Loading…"; }
-            });
+                if (!IsAllowedWebNavigation(e.Uri))
+                {
+                    e.Cancel = true;
+                    Dispatcher.Invoke(() => StatusText.Text = "Blocked an unsupported or unsafe navigation scheme.");
+                    return;
+                }
+                Dispatcher.Invoke(() =>
+                {
+                    if (Tabs.SelectedItem == tab) { AddressBox.Text = e.Uri; StatusText.Text = "Loading…"; }
+                });
+            };
+            // Never bypass TLS/certificate errors. A failed certificate must stop navigation.
+            core.ServerCertificateErrorDetected += (_, e) =>
+            {
+                e.Action = CoreWebView2ServerCertificateErrorAction.Cancel;
+                Dispatcher.Invoke(() => StatusText.Text = "Secure connection blocked: the site's certificate could not be verified.");
+            };
             core.NavigationCompleted += (_, e) => Dispatcher.Invoke(() =>
             {
                 if (e.IsSuccess && Uri.TryCreate(web.Source?.ToString(), UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https")
@@ -153,7 +168,10 @@ public partial class MainWindow : Window
             core.NewWindowRequested += (_, e) =>
             {
                 e.Handled = true;
-                _ = CreateTabAsync(e.Uri, isPrivate);
+                if (IsAllowedWebNavigation(e.Uri))
+                    _ = CreateTabAsync(e.Uri, isPrivate);
+                else
+                    Dispatcher.Invoke(() => StatusText.Text = "Blocked a pop-up using an unsupported navigation scheme.");
             };
             core.PermissionRequested += (_, e) =>
             {
@@ -400,9 +418,38 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
         else StatusText.Text = "Already bookmarked.";
     }
 
+    private static bool IsAllowedWebNavigation(string? value)
+    {
+        if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)) return false;
+        return uri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
+            || uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
+            || (uri.Scheme.Equals("about", StringComparison.OrdinalIgnoreCase)
+                && uri.AbsoluteUri.Equals("about:blank", StringComparison.OrdinalIgnoreCase));
+    }
+
     private void TrackDownload(CoreWebView2DownloadStartingEventArgs e)
     {
         var operation = e.DownloadOperation;
+        var fileName = Path.GetFileName(operation.ResultFilePath);
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        var riskyExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ".exe", ".msi", ".msix", ".bat", ".cmd", ".com", ".scr", ".ps1",
+            ".psm1", ".vbs", ".vbe", ".js", ".jse", ".wsf", ".hta", ".reg"
+        };
+        var warning = riskyExtensions.Contains(extension)
+            ? $"\\n\\nWARNING: {extension} files can run code or change system settings. Only keep this file if you trust its source."
+            : string.Empty;
+        var prompt = $"Download this file?\\n\\n{fileName}\\nFrom: {operation.Uri}{warning}\\n\\nFEYRA does not currently scan downloads for malware.";
+        var decision = MessageBox.Show(this, prompt, "FEYRA · Confirm download",
+            MessageBoxButton.YesNo, riskyExtensions.Contains(extension) ? MessageBoxImage.Warning : MessageBoxImage.Question);
+        if (decision != MessageBoxResult.Yes)
+        {
+            e.Cancel = true;
+            StatusText.Text = "Download cancelled.";
+            return;
+        }
+
         var item = new DownloadEntry(operation.ResultFilePath, operation.Uri, "In progress", 0, 0, DateTimeOffset.Now);
         _downloads.Add(item);
         SaveData();
