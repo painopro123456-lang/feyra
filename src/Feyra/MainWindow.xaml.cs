@@ -188,6 +188,7 @@ public partial class MainWindow : Window
             if (!string.IsNullOrWhiteSpace(address)) Navigate(web, address);
             else web.NavigateToString(StartPageHtml());
 
+            if (Tabs.SelectedItem == tab) HostSelectedTab();
             await ApplyTabMemoryPolicyAsync();
         }
         catch (Exception ex)
@@ -317,8 +318,21 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
     private void Tabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!IsLoaded) return;
+        HostSelectedTab();
         UpdateAddress();
         _ = ApplyTabMemoryPolicyAsync();
+    }
+
+    private void HostSelectedTab()
+    {
+        BrowserSurface.Children.Clear();
+        if (Tabs.SelectedItem is not TabItem selected) return;
+        if (selected.Content is UIElement content)
+        {
+            if (content is FrameworkElement element && element.Parent is Panel oldParent)
+                oldParent.Children.Remove(content);
+            BrowserSurface.Children.Add(content);
+        }
     }
 
     // WebView2 suspension stops background page timers/scripts while retaining the tab.
@@ -590,6 +604,7 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
             var profile = tabState.IsPrivate ? tabState.ProfilePath : Path.Combine(_dataDirectory, "DefaultProfile");
             var env = await CoreWebView2Environment.CreateAsync(null, profile);
             await _splitWeb.EnsureCoreWebView2Async(env);
+            BrowserSurface.Children.Clear();
             var grid = new Grid();
             grid.ColumnDefinitions.Add(new ColumnDefinition());
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1) });
@@ -600,6 +615,7 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
             Grid.SetColumn(_splitWeb, 2);
             grid.Children.Add(_splitWeb);
             selected.Content = grid;
+            BrowserSurface.Children.Add(grid);
             _splitTab = selected;
             _splitWeb.Source = current.Source ?? new Uri("https://www.google.com");
             _splitEnabled = true;
@@ -620,8 +636,10 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
     {
         if (_splitTab?.Tag is BrowserTab owner && _splitTab.Content is Grid splitGrid)
         {
+            BrowserSurface.Children.Clear();
             splitGrid.Children.Clear();
             _splitTab.Content = owner.View;
+            if (Tabs.SelectedItem == _splitTab) BrowserSurface.Children.Add(owner.View);
         }
         _splitWeb?.Dispose();
         _splitWeb = null;
