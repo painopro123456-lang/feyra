@@ -438,9 +438,9 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
             ".psm1", ".vbs", ".vbe", ".js", ".jse", ".wsf", ".hta", ".reg"
         };
         var warning = riskyExtensions.Contains(extension)
-            ? $"\\n\\nWARNING: {extension} files can run code or change system settings. Only keep this file if you trust its source."
+            ? $"\n\nWARNING: {extension} files can run code or change system settings. Only keep this file if you trust its source."
             : string.Empty;
-        var prompt = $"Download this file?\\n\\n{fileName}\\nFrom: {operation.Uri}{warning}\\n\\nFEYRA does not currently scan downloads for malware.";
+        var prompt = $"Download this file?\n\n{fileName}\nFrom: {operation.Uri}{warning}\n\nFEYRA does not currently scan downloads for malware.";
         var decision = MessageBox.Show(this, prompt, "FEYRA · Confirm download",
             MessageBoxButton.YesNo, riskyExtensions.Contains(extension) ? MessageBoxImage.Warning : MessageBoxImage.Question);
         if (decision != MessageBoxResult.Yes)
