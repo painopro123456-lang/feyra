@@ -33,7 +33,11 @@ public partial class MainWindow : Window
         Directory.CreateDirectory(_dataDirectory);
         LoadData();
         ApplySettings();
-        Loaded += async (_, _) => await RestoreSessionAsync();
+        Loaded += async (_, _) =>
+        {
+            await RestoreSessionAsync();
+            _ = UpdateService.CheckAndApplyAsync();
+        };
         PreviewKeyDown += MainWindow_PreviewKeyDown;
     }
 
