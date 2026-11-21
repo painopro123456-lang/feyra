@@ -496,19 +496,6 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
             return;
         }
         if (_splitEnabled) RestoreSplitView();
-        if (false)
-        {
-            if (selected.Content is Grid splitGrid)
-            {
-                splitGrid.Children.Clear();
-                selected.Content = tabState.View;
-            }
-            _splitWeb?.Dispose();
-            _splitWeb = null;
-            _splitEnabled = false;
-            StatusText.Text = "Split view closed.";
-            return;
-        }
         var current = tabState.View;
         _splitWeb = new WebView2();
         try
