@@ -92,17 +92,18 @@ public partial class MainWindow : Window
     private async Task CreateTabAsync(string? address = null, bool isPrivate = false, bool select = true)
     {
         var web = new WebView2();
-        var tab = new TabItem { Header = MakeTabHeader("New tab"), Content = web, Tag = new BrowserTab(web, address ?? "", isPrivate, false, profile) };
+        var profile = isPrivate
+            ? Path.Combine(_dataDirectory, "PrivateProfiles", Guid.NewGuid().ToString("N"))
+            : Path.Combine(_dataDirectory, "DefaultProfile");
+        var state = new BrowserTab(web, address ?? "", isPrivate, false, profile);
+        var tab = new TabItem { Header = MakeTabHeader("New tab"), Content = web, Tag = state };
         Tabs.Items.Add(tab);
-        _tabs.Add((BrowserTab)tab.Tag);
+        _tabs.Add(state);
         AttachTabContextMenu(tab);
         if (select) Tabs.SelectedItem = tab;
 
         try
         {
-            var profile = isPrivate
-                ? Path.Combine(_dataDirectory, "PrivateProfiles", Guid.NewGuid().ToString("N"))
-                : Path.Combine(_dataDirectory, "DefaultProfile");
             Directory.CreateDirectory(profile);
             var environment = await CoreWebView2Environment.CreateAsync(null, profile);
             await web.EnsureCoreWebView2Async(environment);
@@ -287,7 +288,40 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
         if (e.Key == Key.Escape) { UpdateAddress(); Keyboard.ClearFocus(); }
     }
     private void AddressBox_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) => AddressBox.SelectAll();
-    private void Tabs_SelectionChanged(object sender, SelectionChangedEventArgs e) { if (IsLoaded) UpdateAddress(); }
+    private void Tabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!IsLoaded) return;
+        UpdateAddress();
+        _ = ApplyTabMemoryPolicyAsync();
+    }
+
+    // WebView2 suspension stops background page timers/scripts while retaining the tab.
+    // It is a low-risk first memory/CPU optimization; it does not guarantee process RAM is freed.
+    private async Task ApplyTabMemoryPolicyAsync()
+    {
+        var selected = Tabs.SelectedItem as TabItem;
+        foreach (var item in Tabs.Items.OfType<TabItem>())
+        {
+            if (item.Tag is not BrowserTab state || state.View.CoreWebView2 is not { } core) continue;
+            try
+            {
+                if (item == selected && state.IsSuspended)
+                {
+                    core.Resume();
+                    state.IsSuspended = false;
+                }
+                else if (item != selected && !state.IsSuspended)
+                {
+                    await core.TrySuspendAsync();
+                    state.IsSuspended = true;
+                }
+            }
+            catch
+            {
+                // Some pages/process states cannot be suspended; keep browsing uninterrupted.
+            }
+        }
+    }
 
     private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
     {
@@ -622,6 +656,7 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
         public bool IsPrivate { get; } = isPrivate;
         public bool IsPinned { get; set; } = isPinned;
         public string ProfilePath { get; } = profilePath;
+        public bool IsSuspended { get; set; }
     }
     private sealed record HistoryEntry(string Url, DateTimeOffset VisitedAt);
     private sealed record BookmarkEntry(string Url, string Title, string Folder);
