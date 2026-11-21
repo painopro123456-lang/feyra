@@ -31,6 +31,8 @@ jobs:
         run: dotnet build src/Feyra/Feyra.csproj --configuration Release --runtime win-x64 --no-restore
       - name: Audit vulnerable NuGet dependencies
         run: dotnet list src/Feyra/Feyra.csproj package --vulnerable --include-transitive
+      - name: Restore Windows x64 assets after audit
+        run: dotnet restore src/Feyra/Feyra.csproj --runtime win-x64
       - name: Publish Windows preview
         run: dotnet publish src/Feyra/Feyra.csproj --configuration Release --runtime win-x64 --self-contained true --output artifacts/Feyra --no-restore
       - name: Verify published application
