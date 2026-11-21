@@ -57,6 +57,24 @@ FEYRA is building its own browser application and experience from scratch. It is
 - Screen-reader labels and high-contrast support
 - Per-site zoom and permissions
 
+### Personalization and built-in media
+
+- Full browser-chrome color customization: accent, surface, background, text, and tab colors
+- Preset themes (dark, light, system) plus saved custom themes
+- Theme preview and one-click reset; keep contrast and accessibility readable
+- Built-in FEYRA Music panel with song search, artwork, queue, playback controls, shuffle, and repeat
+- Stream music without requiring users to download song files
+- Music playback must use a legitimate licensed streaming provider or a clearly labeled legal free-music catalog; do not scrape or bypass another service's ads or access controls
+- Provider availability, account requirements, regional support, and ad-free playback depend on the selected provider
+
+### Ad and tracker blocking
+
+- User-toggleable built-in ad blocker, enabled by default
+- Easy global on/off control and per-site allowlist
+- Filter-list updates with clear last-updated status
+- Blocking statistics and troubleshooting controls
+- Block common network ads and trackers where technically possible; explain that first-party and server-delivered ads cannot always be separated from site content
+
 ### Privacy and control
 - Private windows with separate session state
 - Clear browsing data by time range and data type
