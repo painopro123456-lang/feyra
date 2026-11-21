@@ -16,7 +16,7 @@
       <DockPanel LastChildFill="True" Margin="12,0">
         <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
           <TextBlock Text="◈" Foreground="{StaticResource AccentBrush}" FontSize="20" Margin="0,0,9,0"/>
-          <TextBlock Text="FEYRA" FontSize="13" FontWeight="Bold" CharacterSpacing="180" VerticalAlignment="Center"/>
+          <TextBlock Text="FEYRA" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
           <TextBlock Text="  /  Browse without the noise" Foreground="{StaticResource MutedBrush}" FontSize="11" VerticalAlignment="Center" Margin="10,0,0,0"/>
         </StackPanel>
         <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
