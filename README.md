@@ -16,7 +16,7 @@ FEYRA is a from-scratch browser project for Windows 10 and Windows 11. The goal 
 ## Planned platform and foundation
 
 - Windows 10 and Windows 11
-- C# / .NET with WinUI 3 for the native application shell
+- C# / .NET 8 with WPF for the native Windows application shell
 - Microsoft Edge WebView2 for standards-based web rendering
 - WebView2 runtime availability and installation handled explicitly by the installer
 
