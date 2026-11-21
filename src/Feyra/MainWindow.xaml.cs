@@ -21,6 +21,7 @@ public partial class MainWindow : Window
     private readonly List<string> _closedTabs = new();
     private BrowserSettings _settings = new();
     private WebView2? _splitWeb;
+    private TabItem? _splitTab;
     private bool _splitEnabled;
     private bool _restoring;
     private bool _closing;
@@ -331,6 +332,7 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
         if (tab.Tag is BrowserTab state && !state.IsPrivate && !string.IsNullOrWhiteSpace(state.LastUrl))
             _closedTabs.Insert(0, state.LastUrl);
         if (Tabs.Items.Count == 1) { _ = CreateTabAsync(); }
+        if (_splitTab == tab) RestoreSplitView();
         Tabs.Items.Remove(tab);
         if (tab.Tag is BrowserTab closed)
         {
@@ -364,7 +366,7 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
         SaveData();
         operation.BytesReceivedChanged += (_, _) => Dispatcher.Invoke(() =>
         {
-            var index = _downloads.IndexOf(item);
+            var index = _downloads.FindIndex(x => x.Path == item.Path && x.Url == item.Url);
             if (index < 0) return;
             var updated = item with { Received = (long)operation.BytesReceived, Total = (long)operation.TotalBytesToReceive };
             _downloads[index] = updated;
@@ -487,7 +489,14 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
     private async void ToggleSplitView()
     {
         if (Tabs.SelectedItem is not TabItem selected || selected.Tag is not BrowserTab tabState) return;
-        if (_splitEnabled)
+        if (_splitEnabled && _splitTab == selected)
+        {
+            RestoreSplitView();
+            StatusText.Text = "Split view closed.";
+            return;
+        }
+        if (_splitEnabled) RestoreSplitView();
+        if (false)
         {
             if (selected.Content is Grid splitGrid)
             {
@@ -517,6 +526,7 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
             Grid.SetColumn(_splitWeb, 2);
             grid.Children.Add(_splitWeb);
             selected.Content = grid;
+            _splitTab = selected;
             _splitWeb.Source = current.Source ?? new Uri("https://www.google.com");
             _splitEnabled = true;
             StatusText.Text = "Split view enabled.";
@@ -525,9 +535,24 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
         {
             _splitWeb?.Dispose();
             _splitWeb = null;
+            _splitTab = null;
+            _splitEnabled = false;
             selected.Content = current;
             StatusText.Text = "Could not start split view: " + ex.Message;
         }
+    }
+
+    private void RestoreSplitView()
+    {
+        if (_splitTab?.Tag is BrowserTab owner && _splitTab.Content is Grid splitGrid)
+        {
+            splitGrid.Children.Clear();
+            _splitTab.Content = owner.View;
+        }
+        _splitWeb?.Dispose();
+        _splitWeb = null;
+        _splitTab = null;
+        _splitEnabled = false;
     }
 
     private void MoreMenu_Click(object sender, RoutedEventArgs e)
