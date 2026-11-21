@@ -639,12 +639,12 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
             BrowserSurface.Children.Clear();
             splitGrid.Children.Clear();
             _splitTab.Content = owner.View;
-            if (Tabs.SelectedItem == _splitTab) BrowserSurface.Children.Add(owner.View);
         }
         _splitWeb?.Dispose();
         _splitWeb = null;
         _splitTab = null;
         _splitEnabled = false;
+        HostSelectedTab();
     }
 
     private void MoreMenu_Click(object sender, RoutedEventArgs e)
