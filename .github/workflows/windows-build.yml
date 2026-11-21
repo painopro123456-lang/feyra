@@ -1,0 +1,28 @@
+name: Windows build
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore
+        run: dotnet restore src/Feyra/Feyra.csproj
+      - name: Build
+        run: dotnet build src/Feyra/Feyra.csproj --configuration Release --no-restore
+      - name: Publish
+        run: dotnet publish src/Feyra/Feyra.csproj --configuration Release --output artifacts/Feyra --no-restore
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Feyra-Windows-preview
+          path: artifacts/Feyra/**
+          if-no-files-found: error
