@@ -91,7 +91,7 @@ jobs:
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.value }}
         run: |
-          vpk pack --packId Feyra --packVersion $env:RELEASE_VERSION --packDir artifacts/Feyra --mainExe Feyra.exe --outputDir artifacts/releases
+          dotnet tool run vpk -- pack --packId Feyra --packVersion $env:RELEASE_VERSION --packDir artifacts/Feyra --mainExe Feyra.exe --outputDir artifacts/releases
           $setup = Get-ChildItem "artifacts/releases" -Filter "*Setup.exe" -File
           if (-not $setup) {
             throw "Velopack did not produce a Setup.exe installer."
