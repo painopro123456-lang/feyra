@@ -37,6 +37,13 @@ Status is deliberately conservative: "implemented in code" does not mean indepen
 - [ ] Memory/CPU diagnostics and measured RAM benchmarks need implementation
 - [ ] Installer, update/install prompt, rollback and code signing are not implemented
 
+## Newly requested features — planned, not implemented
+
+- [ ] Full browser color customization and saved themes (dark/light/system presets, editable accent/surface/background/text/tab colors, preview and reset)
+- [ ] Built-in FEYRA Music panel with song search, streaming playback, artwork, queue, shuffle and repeat; requires a legitimate licensed provider or legal free-music catalog and must not bypass provider ads/access controls
+- [ ] Toggleable ad/tracker blocker, enabled by default, with global switch, per-site allowlist, filter-list updates and blocking statistics
+- [ ] Clearly communicate provider availability, regional/account restrictions, and which music sources actually offer ad-free playback
+
 ## Validation
 - [ ] Successful Windows CI build confirmed (latest changes have not yet been compiled/verified)
 - [ ] Clean Windows 10 install and launch test
