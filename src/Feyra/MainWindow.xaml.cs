@@ -91,7 +91,7 @@ public partial class MainWindow : Window
     private async Task CreateTabAsync(string? address = null, bool isPrivate = false, bool select = true)
     {
         var web = new WebView2();
-        var tab = new TabItem { Header = MakeTabHeader("New tab"), Content = web, Tag = new BrowserTab(web, address ?? "", isPrivate, false) };
+        var tab = new TabItem { Header = MakeTabHeader("New tab"), Content = web, Tag = new BrowserTab(web, address ?? "", isPrivate, false, profile) };
         Tabs.Items.Add(tab);
         _tabs.Add((BrowserTab)tab.Tag);
         if (select) Tabs.SelectedItem = tab;
@@ -292,6 +292,7 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
         if (Tabs.Items.Count == 1) { _ = CreateTabAsync(); }
         Tabs.Items.Remove(tab);
         if (tab.Content is WebView2 web) web.Dispose();
+        if (tab.Tag is BrowserTab closed && closed.IsPrivate) _ = DeletePrivateProfileAsync(closed.ProfilePath);
         SaveSession();
     }
 
@@ -500,6 +501,12 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
     }
     private void CloseFind_Click(object sender, RoutedEventArgs e) { FindBar.Visibility = Visibility.Collapsed; CurrentWeb()?.Focus(); }
 
+    private async Task DeletePrivateProfileAsync(string path)
+    {
+        await Task.Delay(700);
+        try { if (Directory.Exists(path)) Directory.Delete(path, true); } catch { /* WebView2 may still hold files until its process exits. */ }
+    }
+
     private void SaveSession()
     {
         if (_restoring || _closing || !_settings.StartupRestore) return;
@@ -523,12 +530,13 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
         base.OnClosed(e);
     }
 
-    private sealed class BrowserTab(WebView2 view, string lastUrl, bool isPrivate, bool isPinned)
+    private sealed class BrowserTab(WebView2 view, string lastUrl, bool isPrivate, bool isPinned, string profilePath)
     {
         public WebView2 View { get; } = view;
         public string LastUrl { get; set; } = lastUrl;
         public bool IsPrivate { get; } = isPrivate;
         public bool IsPinned { get; set; } = isPinned;
+        public string ProfilePath { get; } = profilePath;
     }
     private sealed record HistoryEntry(string Url, DateTimeOffset VisitedAt);
     private sealed record BookmarkEntry(string Url, string Title, string Folder);
