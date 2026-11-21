@@ -58,7 +58,26 @@ jobs:
           } else {
             $version = $env:REF_NAME.TrimStart("v")
           }
-          if ($version -notmatch '^\\d+\\.\\d+\\.\\d+([-.][0-9A-Za-z.-]+)?$') {
+          if ($version -notmatch '^[0-9]+[.][0-9]+[.][0-9]+([-.][0-9A-Za-z.-]+)?) {
+            throw "Invalid release version: $version. Use a version such as 0.1.0."
+          }
+          "value=$version" >> $env:GITHUB_OUTPUT
+      - run: dotnet restore src/Feyra/Feyra.csproj
+      - run: dotnet publish src/Feyra/Feyra.csproj --configuration Release --runtime win-x64 --self-contained true --output artifacts/Feyra
+      - run: dotnet tool install vpk --version 1.2.161
+      - name: Create installer and update packages
+        shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          vpk pack --packId Feyra --packVersion $env:RELEASE_VERSION --packDir artifacts/Feyra --mainExe Feyra.exe --outputDir artifacts/releases
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.value }}
+          target_commitish: ${{ github.sha }}
+          files: artifacts/releases/*
+          generate_release_notes: true
+) {
             throw "Invalid release version: $version. Use a version such as 0.1.0."
           }
           "value=$version" >> $env:GITHUB_OUTPUT
