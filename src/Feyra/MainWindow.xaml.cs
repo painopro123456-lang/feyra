@@ -157,8 +157,10 @@ public partial class MainWindow : Window
             };
             core.PermissionRequested += (_, e) =>
             {
-                if (isPrivate) e.State = CoreWebView2PermissionState.Deny;
-                else if (!_settings.AskSitePermissions) e.State = CoreWebView2PermissionState.Allow;
+                // Fail closed until FEYRA has a real per-site permission prompt
+                // and permission manager. Never silently grant camera, microphone,
+                // geolocation, notifications, or other web permissions.
+                e.State = CoreWebView2PermissionState.Deny;
             };
             core.ProcessFailed += (_, e) => Dispatcher.Invoke(() =>
             {
