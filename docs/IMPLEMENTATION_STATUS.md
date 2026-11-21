@@ -28,7 +28,7 @@ Status is deliberately conservative: "implemented in code" does not mean indepen
 - [ ] Downloads are tracked, but pause/resume/cancel/retry/open/show-in-folder and robust file destination UI are not finished
 - [ ] Bookmarks lack folder editing, import/export and robust deletion UX
 - [ ] History lacks date filters and granular clear-data controls
-- [ ] Per-site permission management is not implemented; current setting is only a prompt policy placeholder
+- [x] Web permissions currently fail closed (denied by default) until a real per-site permission manager is implemented; this intentionally blocks camera/microphone/location/notifications for now
 - [ ] Reader mode is a prototype DOM transformation, not a robust article extractor
 - [ ] Picture-in-picture depends on the active site's video support
 - [ ] Search suggestions, tab search, vertical tab polish, split-screen persistence and drag reorder need implementation
@@ -38,6 +38,18 @@ Status is deliberately conservative: "implemented in code" does not mean indepen
 - [x] Velopack updater checks GitHub Releases on startup, downloads available updates silently, and applies/restarts automatically for installed builds
 - [x] Tag-triggered Windows release workflow packages an installer and Velopack update assets
 - [ ] End-to-end update test between two installed versions; code signing and rollback validation remain outstanding
+
+## Security hardening — in progress
+
+- [x] Deny web permissions by default; no silent camera, microphone, location, or notification grants
+- [ ] Implement a clear per-site permission prompt and persistent allow/block controls
+- [ ] Add known-malicious-site and phishing warnings using a maintained threat-intelligence source
+- [ ] Enforce HTTPS/certificate-error handling without bypasses
+- [ ] Add download destination confirmation, executable warnings, and file reputation checks
+- [ ] Restrict unsupported navigation schemes and external protocol launches
+- [ ] Review WebView2 settings, profile isolation, renderer process behavior, and update integrity
+- [ ] Add dependency vulnerability scanning, secret scanning, and signed release artifacts
+- [ ] Run security-focused tests before publishing installers
 
 ## Newly requested features — planned, not implemented
 
