@@ -529,7 +529,6 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
         var dark = AddCheck(root, "Use dark browser chrome", _settings.DarkTheme);
         var restore = AddCheck(root, "Restore previous session on startup", _settings.StartupRestore);
         var history = AddCheck(root, "Save browsing history", _settings.SaveHistory);
-        var permissions = AddCheck(root, "Ask before websites request permissions", _settings.AskSitePermissions);
         var context = AddCheck(root, "Enable browser context menus", _settings.ContextMenus);
         var devtools = AddCheck(root, "Enable developer tools", _settings.DeveloperTools);
         var vertical = AddCheck(root, "Use vertical tabs", _settings.VerticalTabs);
@@ -547,7 +546,6 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
             _settings.DarkTheme = dark.IsChecked == true;
             _settings.StartupRestore = restore.IsChecked == true;
             _settings.SaveHistory = history.IsChecked == true;
-            _settings.AskSitePermissions = permissions.IsChecked == true;
             _settings.ContextMenus = context.IsChecked == true;
             _settings.DeveloperTools = devtools.IsChecked == true;
             _settings.VerticalTabs = vertical.IsChecked == true;
@@ -721,7 +719,6 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
         public bool DarkTheme { get; set; } = true;
         public bool StartupRestore { get; set; } = true;
         public bool SaveHistory { get; set; } = true;
-        public bool AskSitePermissions { get; set; } = true;
         public bool ContextMenus { get; set; } = true;
         public bool DeveloperTools { get; set; }
         public bool VerticalTabs { get; set; }
