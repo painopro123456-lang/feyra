@@ -163,6 +163,8 @@ public partial class MainWindow : Window
 
             if (!string.IsNullOrWhiteSpace(address)) Navigate(web, address);
             else web.NavigateToString(StartPageHtml());
+
+            await ApplyTabMemoryPolicyAsync();
         }
         catch (Exception ex)
         {
