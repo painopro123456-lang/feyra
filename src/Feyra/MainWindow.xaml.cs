@@ -290,6 +290,12 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
 
     private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
     {
+        if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+        {
+            if (e.Key == Key.N) { _ = CreateTabAsync(null, true); e.Handled = true; return; }
+            if (e.Key == Key.T && _closedTabs.Count > 0) { var url = _closedTabs[0]; _closedTabs.RemoveAt(0); _ = CreateTabAsync(url); e.Handled = true; return; }
+            if (e.Key == Key.Tab) { Tabs.SelectedIndex = (Tabs.SelectedIndex - 1 + Tabs.Items.Count) % Math.Max(1, Tabs.Items.Count); e.Handled = true; return; }
+        }
         if (Keyboard.Modifiers == ModifierKeys.Control)
         {
             switch (e.Key)
@@ -303,7 +309,7 @@ form{display:flex;background:#242a35;border:1px solid #3b4352;border-radius:16px
                 case Key.J: Downloads_Click(this, new RoutedEventArgs()); e.Handled = true; break;
                 case Key.F: FindBar.Visibility = Visibility.Visible; FindBox.Focus(); FindBox.SelectAll(); e.Handled = true; break;
                 case Key.N: _ = CreateTabAsync(null, Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)); e.Handled = true; break;
-                case Key.Plus: case Key.OemPlus: ChangeZoom(0.1); e.Handled = true; break;
+                case Key.OemPlus: ChangeZoom(0.1); e.Handled = true; break;
                 case Key.OemMinus: ChangeZoom(-0.1); e.Handled = true; break;
                 case Key.D0: if (CurrentWeb() is { } w) w.ZoomFactor = 1; UpdateZoomLabel(); e.Handled = true; break;
                 case Key.Tab: SelectNextTab(); e.Handled = true; break;
